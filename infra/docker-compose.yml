@@ -1,6 +1,18 @@
 version: '3.3'
 services:
 
+  backend:
+    container_name: foodgram-backend
+    build: ../backend
+    volumes:
+      - ../backend:/app
+      - ../backend/media:/app/media
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-eki#82@=l0@7h50^$z+udg-_%d%#!9-(ilx_o3+s$-1sa!o5le
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+    ports:
+      - "8000:8000"  # Для отладки напрямую
   frontend:
     container_name: foodgram-front
     build: ../frontend

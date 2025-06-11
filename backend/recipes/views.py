@@ -1,8 +1,8 @@
 from rest_framework import viewsets
+from rest_framework import permissions as rest_framework_permissions
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet, filters as df_filters
 from .models import Recipe
 from .serializers import RecipeSerializer
-
 
 class RecipeFilter(FilterSet):
     is_favorited = df_filters.BooleanFilter(method='filter_is_favorited')
@@ -25,12 +25,12 @@ class RecipeFilter(FilterSet):
             return queryset.filter(shopping_cart__user=user)
         return queryset
 
-
 class RecipeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Recipe.objects.all().order_by('-pub_date')
     serializer_class = RecipeSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
+    permission_classes = [rest_framework_permissions.AllowAny]
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

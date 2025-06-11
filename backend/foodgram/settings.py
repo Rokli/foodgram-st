@@ -25,7 +25,6 @@ SECRET_KEY = 'django-insecure-eki#82@=l0@7h50^$z+udg-_%d%#!9-(ilx_o3+s$-1sa!o5le
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -41,12 +40,23 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'corsheaders',
+    'users',
 ]
+
+AUTH_USER_MODEL = 'users.CustomUser'
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 6,
+    'PAGE_SIZE_QUERY_PARAM': 'limit',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
 }
 
 MIDDLEWARE = [
@@ -60,12 +70,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost', 
-    'http://127.0.0.1:8000', 
-]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_URLS_REGEX = r'^/api/.*$' 
+
+CORS_ALLOW_ALL_ORIGINS = True  # Для разработки
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','backend']
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 
 ROOT_URLCONF = 'foodgram.urls'
 
