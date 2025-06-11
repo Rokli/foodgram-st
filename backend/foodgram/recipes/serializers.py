@@ -1,67 +1,87 @@
 from base64 import b64decode
 from django.core.files.base import ContentFile
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext_lazy as _
+from django_short_url.views import get_surl
+from django_short_url.models import ShortURL
 from rest_framework import serializers
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 
-from .models import Recipes, Component, RecipesComponent
+from .models import Recipe, Ingredient, IngredientRecipe
 
 
-class Base64PhotoField(serializers.ImageField):
+class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
-            head, b64_data = data.split(';base64,')
-            ext = head.split('/')[-1]
-            data = ContentFile(b64decode(b64_data), name=f"img.{ext}")
+            _, b64_data = data.split(';base64,')
+            ext = _.split('/')[-1]
+            data = ContentFile(b64decode(b64_data), name=f"temp.{ext}")
         return super().to_internal_value(data)
 
 
-class ComponentSerializer(serializers.ModelSerializer):
+class IngredientSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='name')
 
     class Meta:
-        model = Component
-        fields = ('id', 'name', 'measure')
+        model = Ingredient
+        fields = ('id', 'name', 'measurement_unit')
 
 
-class RecipesSerializer(serializers.ModelSerializer):
-    components = ComponentSerializer(many=True, required=True)
-    photo = Base64PhotoField(required=False, allow_null=True)
-    photo_url = serializers.SerializerMethodField()
+class RecipeSerializer(serializers.ModelSerializer):
+    ingredients = IngredientSerializer(many=True, required=True)
+    image = Base64ImageField(required=False, allow_null=True)
+    image_url = serializers.SerializerMethodField()
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
-        model = Recipes
+        model = Recipe
         fields = '__all__'
 
-    def get_photo_url(self, obj):
-        return obj.photo.url if obj.photo else None
+    def get_image_url(self, obj):
+        return obj.image.url if obj.image else None
+
+    def get_is_favorited(self, obj):
+        return False
+
+    def get_is_in_shopping_cart(self, obj):
+        return False
 
     def create(self, validated_data):
-        if 'components' not in self.initial_data:
-            raise serializers.ValidationError('Не указаны компоненты.')
-
-        comp_data = validated_data.pop('components')
-        recipe = Recipes.objects.create(**validated_data)
-
-        for comp in comp_data:
-            comp_obj, _ = Component.objects.get_or_create(**comp)
-            RecipesComponent.objects.create(dish=recipe, component=comp_obj, amount=1)  # 1 по умолчанию
-
+        ingredients_data = validated_data.pop('ingredients', None)
+        if not ingredients_data:
+            raise serializers.ValidationError(_('Ingredients field is required.'))
+        recipe = Recipe.objects.create(**validated_data)
+        for ingredient_data in ingredients_data:
+            ingredient, _ = Ingredient.objects.get_or_create(**ingredient_data)
+            IngredientRecipe.objects.create(ingredient=ingredient, recipe=recipe)
         return recipe
 
     def update(self, instance, validated_data):
-        instance.title = validated_data.get('title', instance.title)
-        instance.desc = validated_data.get('desc', instance.desc)
-        instance.time = validated_data.get('time', instance.time)
-        instance.photo = validated_data.get('photo', instance.photo)
-
-        if 'components' not in validated_data:
-            raise serializers.ValidationError('Не указаны компоненты.')
-
-        comps = validated_data.pop('components')
-        RecipesComponent.objects.filter(dish=instance).delete()
-
-        for comp in comps:
-            comp_obj, _ = Component.objects.get_or_create(**comp)
-            RecipesComponent.objects.create(dish=instance, component=comp_obj, amount=1)
-
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get('cooking_time', instance.cooking_time)
+        instance.image = validated_data.get('image', instance.image)
+        ingredients_data = validated_data.pop('ingredients', None)
+        if not ingredients_data:
+            raise serializers.ValidationError(_('Ingredients field is required.'))
+        instance.achievements.clear()
+        for ingredient_data in ingredients_data:
+            ingredient, _ = Ingredient.objects.get_or_create(**ingredient_data)
+            IngredientRecipe.objects.create(ingredient=ingredient, recipe=instance)
         instance.save()
         return instance
+
+    @action(detail=True, methods=['get'], url_path='get-link')
+    def get_short_link(self, request, pk=None):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        full_url = request.build_absolute_uri(recipe.get_absolute_url())
+        short_url = get_surl(full_url)
+        return Response({'short-link': short_url}, status=status.HTTP_200_OK)
+
+    def redirect_short_url(request, short_url):
+        url = get_surl(short_url)
+        return HttpResponseRedirect(url)
