@@ -26,7 +26,6 @@ SECRET_KEY = 'django-insecure-eki#82@=l0@7h50^$z+udg-_%d%#!9-(ilx_o3+s$-1sa!o5le
 DEBUG = True
 
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -39,8 +38,9 @@ INSTALLED_APPS = [
     'recipes',
     'rest_framework',
     'django_filters',
-    'corsheaders',
     'users',
+    'corsheaders',
+    'rest_framework.authtoken',
 ]
 
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -99,6 +99,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

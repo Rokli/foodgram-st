@@ -7,12 +7,13 @@ services:
     volumes:
       - ../backend:/app
       - ../backend/media:/app/media
+      - ../backend/staticfiles:/app/staticfiles
     environment:
       - DEBUG=True
       - SECRET_KEY=django-insecure-eki#82@=l0@7h50^$z+udg-_%d%#!9-(ilx_o3+s$-1sa!o5le
       - ALLOWED_HOSTS=localhost,127.0.0.1,backend
     ports:
-      - "8000:8000"  # Для отладки напрямую
+      - "8000:8000"  
   frontend:
     container_name: foodgram-front
     build: ../frontend
@@ -27,3 +28,4 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
+      - ../backend/staticfiles:/static/
