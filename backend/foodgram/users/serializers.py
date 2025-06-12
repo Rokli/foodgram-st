@@ -6,7 +6,7 @@ from .models import User, Subscription
 from rest_framework.decorators import action
 from rest_framework import serializers
 
-class UserseSerializer(UserSerializer):
+class UsersSerializer(UserSerializer):
     is_following = serializers.SerializerMethodField(
         'check_is_following',
         read_only=True
@@ -39,10 +39,12 @@ class UserseSerializer(UserSerializer):
             follower=auth_user, followed=obj).exists()
     
     @action(detail=True, methods=['delete'], url_path='avatar')
-    def delete_avatar(self, request, pk=None):
-        user = self.get_object()
+    def delete_avatar(self, instance):
+        instance.avatar = None
+        instance.save()
+        return instance
     
-    @action(method=['put'], url_path='avatar')
+    @action(detail=True, method=['put'], url_path='avatar')
     def put_avatar(self, instance, validated_data):
         instance.avatar = validated_data.get('avatar', instance.avatar)
         instance.save()

@@ -113,6 +113,13 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
+DJOSER = {
+    'LOGIN_FIELD': 'user.models.User.email',
+    'SERIALIZERS': {
+        'user': 'user.serializers.UsersSerializer',
+    },
+}
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
 MEDIA_URL = '/media/'
