@@ -23,7 +23,7 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit')
 
 
-class RecipeSerializer(serializers.ModelSerializer):
+class RecipesSerializer(serializers.ModelSerializer):
     ingredients = IngredientSerializer(many=True, required=True)
     image = Base64ImageField(required=False, allow_null=True)
     image_url = serializers.SerializerMethodField()

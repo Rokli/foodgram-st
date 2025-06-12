@@ -4,7 +4,7 @@ from django.db import models
 Account = get_user_model()
 
 
-class Component(models.Model):
+class Ingredient(models.Model):
     name = models.CharField('Наименование', max_length=255)
     measure = models.CharField('Единица измерения', max_length=50,
                                help_text='Укажите единицу измерения')
@@ -32,8 +32,8 @@ class Recipes(models.Model):
                                 on_delete=models.CASCADE,
                                 related_name='dishes')
 
-    components = models.ManyToManyField(Component,
-                                        through='RecipesComponent',
+    components = models.ManyToManyField(Ingredient,
+                                        through='RecipesIngredient',
                                         related_name='dishes')
 
     fav = models.BooleanField('В избранном', default=False)
@@ -47,9 +47,9 @@ class Recipes(models.Model):
         return f"Блюдо: {self.title}"
 
 
-class RecipesComponent(models.Model):
+class RecipesIngredient(models.Model):
     dish = models.ForeignKey(Recipes, on_delete=models.CASCADE, verbose_name='Блюдо')
-    component = models.ForeignKey(Component, on_delete=models.CASCADE, verbose_name='Компонент')
+    component = models.ForeignKey(Ingredient, on_delete=models.CASCADE, verbose_name='Компонент')
     amount = models.FloatField('Количество', help_text='Укажите число в выбранных единицах')
 
     class Meta:
