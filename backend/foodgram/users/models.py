@@ -20,16 +20,16 @@ class Subscription(models.Model):
         related_name='subscriptions',
         on_delete=models.CASCADE
     )
-    follower = models.ForeignKey(
+    follows = models.ForeignKey(
         'User',
-        related_name='followers',
+        related_name='Подписка',
         on_delete=models.CASCADE
     )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'follower'],
+                fields=['user', 'follows'],
                 name='unique_subscription'
             )
         ]
