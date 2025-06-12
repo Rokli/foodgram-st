@@ -3,11 +3,39 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
+
+    username = models.CharField(
+        max_length=150,
+        unique=True,
+    )
+
+    first_name = models.CharField(
+        max_length=150,
+        blank=True,
+    )
+
+    last_name = models.CharField(
+        max_length=150,
+        blank=True,
+    )
+
+    email = models.EmailField(
+        unique=True,
+        max_length=254
+    )
     avatar = models.ImageField(
         upload_to='users/images',
         null=True,
         blank=True
     )
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = [
+        'username',
+        'first_name',
+        'last_name',
+        'password'
+    ]
 
     class Meta:
         verbose_name = 'профиль пользователя'
