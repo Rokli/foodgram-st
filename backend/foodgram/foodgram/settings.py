@@ -114,9 +114,9 @@ SIMPLE_JWT = {
 }
 
 DJOSER = {
-    'LOGIN_FIELD': 'user.models.User.email',
+    'LOGIN_FIELD': 'users.models.User.email',
     'SERIALIZERS': {
-        'user': 'user.serializers.UsersSerializer',
+        'user': 'users.serializers.UsersSerializer',
     },
 }
 

@@ -1,10 +1,20 @@
 from rest_framework import serializers
-from dishes.serializers import Base64ImageField
 from rest_framework import serializers, status
 from django.shortcuts import get_object_or_404
 from .models import User, Subscription
 from rest_framework.decorators import action
 from rest_framework import serializers
+from django.core.files.base import ContentFile
+from djoser.serializers import UserSerializer
+
+class Base64ImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:image'):
+            _, b64_data = data.split(';base64,')
+            ext = _.split('/')[-1]
+            data = ContentFile(b64decode(b64_data), name=f"temp.{ext}")
+        return super().to_internal_value(data)
+
 
 class UsersSerializer(UserSerializer):
     is_following = serializers.SerializerMethodField(
@@ -18,7 +28,7 @@ class UsersSerializer(UserSerializer):
     )
 
     class Meta:
-        model = Account
+        model = User
         read_only_fields = (
             'account',
             'is_following')

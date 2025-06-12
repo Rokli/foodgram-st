@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models 
 
-Account = get_user_model()
+User = get_user_model()
 
 
 class Ingredient(models.Model):
@@ -28,7 +28,7 @@ class Recipes(models.Model):
                               null=True,
                               blank=True)
 
-    creator = models.ForeignKey(Account,
+    creator = models.ForeignKey(User,
                                 on_delete=models.CASCADE,
                                 related_name='dishes')
 
