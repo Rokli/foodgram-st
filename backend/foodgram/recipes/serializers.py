@@ -1,14 +1,7 @@
 from base64 import b64decode
 from django.core.files.base import ContentFile
-from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
-from django_short_url.views import get_surl
-from django_short_url.models import ShortURL
 from rest_framework import serializers
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework import status
 
 from .models import Recipe, Ingredient, IngredientRecipe
 
@@ -74,14 +67,3 @@ class RecipeSerializer(serializers.ModelSerializer):
             IngredientRecipe.objects.create(ingredient=ingredient, recipe=instance)
         instance.save()
         return instance
-
-    @action(detail=True, methods=['get'], url_path='get-link')
-    def get_short_link(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
-        full_url = request.build_absolute_uri(recipe.get_absolute_url())
-        short_url = get_surl(full_url)
-        return Response({'short-link': short_url}, status=status.HTTP_200_OK)
-
-    def redirect_short_url(request, short_url):
-        url = get_surl(short_url)
-        return HttpResponseRedirect(url)

@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'api.apps.ApiConfig',
     'users.apps.UsersConfig',
-    'recipes.apps.RecipesConfig'
+    'recipes.apps.RecipesConfig',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -97,6 +98,11 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
