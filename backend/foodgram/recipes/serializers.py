@@ -2,6 +2,7 @@ from base64 import b64decode
 from django.core.files.base import ContentFile
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+import uuid
 
 from .models import Recipe, Ingredient, IngredientRecipe
 
@@ -11,7 +12,8 @@ class Base64ImageField(serializers.ImageField):
         if isinstance(data, str) and data.startswith('data:image'):
             _, b64_data = data.split(';base64,')
             ext = _.split('/')[-1]
-            data = ContentFile(b64decode(b64_data), name=f"temp.{ext}")
+            filename = f"avatar_{uuid.uuid4().hex[:8]}.{ext}"
+            data = ContentFile(b64decode(imgstr), name=filename)
         return super().to_internal_value(data)
 
 

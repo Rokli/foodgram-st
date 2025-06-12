@@ -1,9 +1,8 @@
-from rest_framework import serializers
 from rest_framework import serializers, status
 from django.shortcuts import get_object_or_404
 from .models import User, Subscription
 from rest_framework.decorators import action
-from rest_framework import serializers
+from rest_framework.response import Response
 from django.core.files.base import ContentFile
 from djoser.serializers import UserSerializer
 
@@ -59,3 +58,9 @@ class UsersSerializer(UserSerializer):
         instance.avatar = validated_data.get('avatar', instance.avatar)
         instance.save()
         return instance
+    
+class SubscriptionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Subscription
+        read_only_field = ('user', 'follows')
