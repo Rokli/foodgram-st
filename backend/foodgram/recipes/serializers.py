@@ -8,7 +8,6 @@ from rest_framework import serializers
 from .models import Recipe, IngredientModel, RecipeIngredient
 from users.serializers import UsersSerializer
 
-
 class ImageBase64Field(serializers.ImageField):
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):

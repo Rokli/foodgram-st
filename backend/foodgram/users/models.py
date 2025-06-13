@@ -6,7 +6,7 @@ from rest_framework.validators import ValidationError
 
 
 def validate_user_name(value):
-    if not re.match(r'^[\w.@+-]+\z', value):
+    if not re.match(r'^[\w.@+-]+$', value):
         raise ValidationError('Недопустимые символы в имени пользователя')
 
 
@@ -45,7 +45,6 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'password']
 
     class Meta(AbstractUser.Meta):
-        db_table = 'custom_users'
         verbose_name = 'Профиль пользователя'
         verbose_name_plural = 'Профили пользователей'
 

@@ -6,7 +6,7 @@ from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 
 from .models import User, Follow
-
+import re
 
 class ImageBase64Field(serializers.ImageField):
     def to_internal_value(self, data):
@@ -44,9 +44,22 @@ class UsersSerializer(UserSerializer):
 
 
 class UsersCreateSerializer(UserCreateSerializer):
+    password = serializers.CharField(write_only=True, min_length=8)
+
     class Meta(UserCreateSerializer.Meta):
         model = User
-        fields = (
-            'id', 'email', 'username', 'password', 
-            'first_name', 'last_name'
-        )
+        fields = ('id', 'email', 'username', 'password', 'first_name', 'last_name')
+
+    def validate_username(self, value):
+        if not re.match(r'^[\w.@+-]+\z', value):
+            raise serializers.ValidationError('Имя пользователя содержит недопустимые символы')
+        return value
+
+    def validate(self, data):
+        if data.get('password') != data.get('re_password'):
+            raise serializers.ValidationError({'re_password': 'Пароли не совпадают'})
+        return data
+
+    def create(self, validated_data):
+        validated_data.pop('re_password', None)  # Удаляем re_password перед созданием
+        return User.objects.create_user(**validated_data)
