@@ -1,4 +1,6 @@
-from django.contrib import admin
-from django.contrib.auth import get_user_model
+from django.urls import include, path
 
-User = get_user_model()
+urlpatterns = [
+    path('', include('recipes.urls')),
+    path('', include('users.urls')),
+]
