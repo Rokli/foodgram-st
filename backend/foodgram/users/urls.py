@@ -5,6 +5,7 @@ from .views import UsersViewSet
 
 router = DefaultRouter()
 router.register(r'users', UsersViewSet, basename='users')
+
 urlpatterns = [
     path('', include(router.urls)),
     path('', include('djoser.urls.base')),

@@ -1,65 +1,35 @@
+from re import match
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from rest_framework.validators import ValidationError
 
 
-class User(AbstractUser):
+def validate_username(value):
+    if not match(r'^[\w.@+-]+\z', value):
+        raise ValidationError('Invalid characters in username')
 
-    username = models.CharField(
-        max_length=150,
-        unique=True,
-    )
-
-    first_name = models.CharField(
-        max_length=150,
-        blank=True,
-    )
-
-    last_name = models.CharField(
-        max_length=150,
-        blank=True,
-    )
-
-    email = models.EmailField(
-        unique=True,
-        max_length=254
-    )
-    avatar = models.ImageField(
-        upload_to='users/images',
-        null=True,
-        blank=True
-    )
-
+class UserProfile(AbstractUser):
+    email = models.EmailField(unique=True, max_length=255)
+    username = models.CharField(max_length=150, unique=True, validators=[validate_username])
+    first_name = models.CharField(max_length=150, blank=False, null=False)
+    last_name = models.CharField(max_length=150, blank=False, null=False)
+    avatar = models.ImageField(upload_to='profiles/avatars/', null=True, default=None)
+    
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = [
-        'username',
-        'first_name',
-        'last_name',
-        'password'
-    ]
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name', 'password']
 
-    class Meta:
-        verbose_name = 'профиль пользователя'
-        verbose_name_plural = 'профили пользователей'
-
+    class Meta(AbstractUserMeta):
+        db_table = 'auth_users'
+        verbose_name = 'user profile'
+        verbose_name_plural = 'user profiles'
 
 class Subscription(models.Model):
-    user = models.ForeignKey(
-        'User',
-        related_name='subscriptions',
-        on_delete=models.CASCADE
-    )
-    follows = models.ForeignKey(
-        'User',
-        related_name='Подписка',
-        on_delete=models.CASCADE
-    )
+    user = models.ForeignKey(UserProfile, related_name='followers', on_delete=models.CASCADE)
+    follower = models.ForeignKey(UserProfile, related_name='following', on_delete=models.CASCADE)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'follows'],
-                name='unique_subscription'
-            )
+            models.UniqueConstraint(fields=['user', 'follower'], name="unique_follow")
         ]
-        verbose_name = 'подписка'
-        verbose_name_plural = 'подписки'
+        verbose_name = 'subscription'
+        verbose_name_plural = 'subscriptions'

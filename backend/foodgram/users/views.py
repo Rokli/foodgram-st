@@ -1,9 +1,11 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
-from rest_framework import viewsets, pagination, mixins, permissions
-from .models import User, Follow
-from .serializers import UsertSerializer, FollowSerializer
 from rest_framework.response import Response
-from rest_framework import viewsets, pagination, mixins, permissions, status
+from rest_framework.validators import ValidationError
+from rest_framework import pagination, permissions, status
+from djoser import views
+from .models import UserProfile, Subscription
+from .serializers import UserProfileSerializer
 
 class SubscriptionViewSet(viewsets.GenericViewSet,
                          mixins.CreateModelMixin,
@@ -14,26 +16,60 @@ class SubscriptionViewSet(viewsets.GenericViewSet,
 
 
 class UsersViewSet(viewsets.ModelViewSet):
-    queryset = Account.objects.all()
-    serializer_class = AccountSerializer
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
     pagination_class = pagination.LimitOffsetPagination
-    @action(detail=False, methods=['get'], url_path='profile')
-    def fetch_current(self, request):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, ]
+
+    @action(detail=False,
+            methods=['get'],
+            url_path='me',
+            permission_classes=[permissions.IsAuthenticated])
+    def get_current_user(self, request):
+        """Метод для получения текущего пользователя"""
         return Response(self.get_serializer(request.user).data)
 
-    @action(detail=False, methods=['put', 'delete'], url_path='profile/avatar')
-    def update_remove_avatar(self, request):
+    @action(detail=True, methods=['get'])
+    def get_user(self, request, pk=None):
+        user = self.get_object()
+        if not user:
+            return Response({'detail': 'Страница не найдена.'},
+                            status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(user)
+        data = serializer.data
+        return Response(data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['put', 'delete'], url_path='me/avatar')
+    def put_delete_avatar(self, request):
         user = request.user
         if request.method == 'PUT':
-            serializer = self.get_serializer(user, data=request.data, partial=True)
+            serializer = self.get_serializer(user,
+                                             data=request.data,
+                                             partial=True)
             serializer.is_valid(raise_exception=True)
+
+            if 'avatar' not in request.data or not request.data.get('avatar'):
+                return Response(
+                    {'detail': 'Поле \'avatar\' не задано!'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             if user.avatar:
                 user.avatar.delete()
 
             serializer.save()
-            return Response({'avatar': serializer.data['avatar']}, status=status.HTTP_200_OK)
-
+            return Response(
+                {'avatar': serializer.data['avatar']},
+                status=status.HTTP_200_OK
+            )
+        if not user.avatar:
+            return Response(
+                {'detail': 'Аватар не существует!'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         user.avatar.delete()
         user.save()
-        return Response({'message': 'Avatar successfully removed'}, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {'message': 'Аватар успешно удалён'},
+            status=status.HTTP_204_NO_CONTENT
+        )
