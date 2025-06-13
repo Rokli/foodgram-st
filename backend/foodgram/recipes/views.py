@@ -117,7 +117,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post', 'delete'], url_path='favorite', permission_classes=[permissions.IsAuthenticated])
     def post_delete_favorite(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
+        recipe = get_object_or_404(Recipes, pk=pk)
         user = request.user
         if not user.is_authenticated:
             return Response(
