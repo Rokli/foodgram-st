@@ -50,7 +50,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post', 'delete'], url_path='shopping_cart', permission_classes=[permissions.IsAuthenticated])
     def post_delete_shopping_cart(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
+        recipe = get_object_or_404(Recipes, pk=pk)
         user = request.user
         if not user.is_authenticated:
             return Response(
