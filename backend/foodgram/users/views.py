@@ -1,10 +1,8 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import status, permissions, pagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.validators import ValidationError
 from djoser.views import UserViewSet
-from .models import User, Subscription
+from .models import User
 from .serializers import UsersSerializer
 
 class UserViewSet(UserViewSet):

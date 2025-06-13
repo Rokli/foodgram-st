@@ -4,7 +4,6 @@ from djoser.serializers import UserSerializer, UserCreateSerializer
 from base64 import b64decode
 import uuid
 from django.core.files.base import ContentFile
-from rest_framework import serializers
 
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):

@@ -1,20 +1,18 @@
 from io import BytesIO
 from django.db.models import Sum
 from django.http import FileResponse
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions, filters, status, mixins, pagination
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Recipes, Ingredient, ItemCart, RecipesIngredient, Favorites
+from .models import Ingredient, ItemCart, RecipesIngredient, Favorites
 from .serializers import IngredientSerializer, RecipesSerializer, ShortRecipeSerializer, SubscriptionSerializer
 from .permissions import AuthorOrReadOnly
 from .filters import RecipeFilter
 from users.models import Subscription, User
-
-User = get_user_model()
+from .models import Recipe
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()

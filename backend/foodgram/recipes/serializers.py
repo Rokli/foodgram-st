@@ -5,8 +5,6 @@ from users.serializers import UsersSerializer
 from base64 import b64decode
 import uuid
 from django.core.files.base import ContentFile
-from rest_framework import serializers
-from .models import Recipes, Ingredient, RecipesIngredient
 
 
 class Base64ImageField(serializers.ImageField):
