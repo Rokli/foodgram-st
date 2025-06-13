@@ -21,7 +21,7 @@ dotenv.load_dotenv(PROJECT_DIR / 'infra' / '.env')
 
 SECRET_KEY = os.environ['SECRET_KEY']
 
-# DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost 127.0.0.1').split()
 
