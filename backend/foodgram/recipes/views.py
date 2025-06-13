@@ -12,7 +12,7 @@ from .serializers import IngredientSerializer, RecipesSerializer, ShortRecipeSer
 from .permissions import AuthorOrReadOnly
 from .filters import RecipeFilter
 from users.models import Subscription, User
-from .models import Recipe
+from .models import Recipes
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
@@ -39,7 +39,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_queryset(self):
-        return Recipe.objects.select_related('author').prefetch_related(
+        return Recipes.objects.select_related('author').prefetch_related(
             'recipe_ingredients__ingredient',
             'user_favs',
             'shopping_carts'
