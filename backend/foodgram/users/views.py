@@ -1,9 +1,11 @@
+from djoser.views import UserViewSet
 from rest_framework import status, permissions, pagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from djoser.views import UserViewSet
+
 from .models import User
 from .serializers import UsersSerializer
+
 
 class UserViewSet(UserViewSet):
     queryset = User.objects.all()
@@ -11,32 +13,67 @@ class UserViewSet(UserViewSet):
     pagination_class = pagination.LimitOffsetPagination
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    @action(detail=False, methods=['get'], url_path='profile', permission_classes=[permissions.IsAuthenticated])
-    def retrieve_profile(self, request):
-        data = self.get_serializer(request.user).data
-        return Response(data)
+    @action(
+        detail=False, 
+        methods=['get'], 
+        url_path='me', 
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def get_current_user(self, request):
+        user_data = self.get_serializer(request.user).data
+        return Response(user_data)
 
-    @action(detail=True, methods=['get'], url_path='', permission_classes=[permissions.IsAuthenticatedOrReadOnly])
-    def fetch_user(self, request, pk=None):
-        user = self.get_object()
-        data = self.get_serializer(user).data
-        return Response(data, status=status.HTTP_200_OK)
+    @action(
+        detail=True, 
+        methods=['get'], 
+        url_path='', 
+        permission_classes=[permissions.IsAuthenticatedOrReadOnly]
+    )
+    def get_user_profile(self, request, pk=None):
+        target_user = self.get_object()
+        user_data = self.get_serializer(target_user).data
+        return Response(user_data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['put', 'delete'], url_path='profile/avatar', permission_classes=[permissions.IsAuthenticated])
-    def update_remove_avatar(self, request):
-        user = request.user
+    @action(
+        detail=False, 
+        methods=['put', 'delete'], 
+        url_path='me/avatar',
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def manage_user_avatar(self, request):
+        current_user = request.user
+        
         if request.method == 'PUT':
-            serializer = self.get_serializer(user, data=request.data, partial=True)
+            serializer = self.get_serializer(
+                current_user, data=request.data, partial=True
+            )
             serializer.is_valid(raise_exception=True)
-            avatar = request.data.get('avatar')
-            if not avatar:
-                return Response({'avatar': 'Avatar field is required!'}, status=status.HTTP_400_BAD_REQUEST)
-            if user.avatar:
-                user.avatar.delete()
+            
+            avatar_data = request.data.get('avatar')
+            if not avatar_data:
+                return Response(
+                    {'avatar': 'Поле аватара обязательно!'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if current_user.profile_picture:
+                current_user.profile_picture.delete()
+                
             serializer.save()
-            return Response({'avatar': serializer.data['avatar']}, status=status.HTTP_200_OK)
-        if not user.avatar:
-            return Response({'detail': 'No avatar exists'}, status=status.HTTP_400_BAD_REQUEST)
-        user.avatar.delete()
-        user.save()
-        return Response({'message': 'Avatar removed'}, status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {'avatar': serializer.data['avatar']}, 
+                status=status.HTTP_200_OK
+            )
+            
+        if not current_user.profile_picture:
+            return Response(
+                {'detail': 'Аватар не установлен'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        current_user.profile_picture.delete()
+        current_user.save()
+        return Response(
+            {'message': 'Аватар удален'}, 
+            status=status.HTTP_204_NO_CONTENT
+        )

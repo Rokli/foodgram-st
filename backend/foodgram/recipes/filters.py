@@ -1,21 +1,22 @@
-from .models import Recipes
 from django_filters import rest_framework as filters
 
+from .models import Recipe
 
-class RecipeFilter(filters.FilterSet):
-    fav_flag = filters.BooleanFilter(method='filter_fav_flag')
-    cart_flag = filters.BooleanFilter(method='filter_cart_flag')
+
+class RecipeFilterSet(filters.FilterSet):
+    is_favorited = filters.BooleanFilter(method='filter_favorited_recipes')
+    is_in_shopping_cart = filters.BooleanFilter(method='filter_cart_recipes')
 
     class Meta:
-        model = Recipes
-        fields = ['author', 'name']
+        model = Recipe
+        fields = ['creator', 'title']
 
-    def filter_fav_flag(self, queryset, name, value):
+    def filter_favorited_recipes(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
-            return queryset.filter(user_favs__user=self.request.user)
+            return queryset.filter(favorited_by__owner=self.request.user)
         return queryset
 
-    def filter_cart_flag(self, queryset, name, value):
+    def filter_cart_recipes(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
-            return queryset.filter(shopping_carts__user=self.request.user)
+            return queryset.filter(in_carts__owner=self.request.user)
         return queryset
