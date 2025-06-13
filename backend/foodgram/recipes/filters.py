@@ -1,4 +1,4 @@
-from .models import Recipe
+from .models import Recipes
 from django_filters import rest_framework as filters
 
 
@@ -7,7 +7,7 @@ class RecipeFilter(filters.FilterSet):
     cart_flag = filters.BooleanFilter(method='filter_cart_flag')
 
     class Meta:
-        model = Recipe
+        model = Recipes
         fields = ['author', 'name']
 
     def filter_fav_flag(self, queryset, name, value):

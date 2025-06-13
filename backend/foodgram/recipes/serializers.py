@@ -2,19 +2,21 @@ from django.core.paginator import Paginator
 from rest_framework import serializers
 from .models import Recipes, Ingredient, RecipesIngredient
 from users.serializers import UsersSerializer
-
+from base64 import b64decode
+import uuid
+from django.core.files.base import ContentFile
+from rest_framework import serializers
 from .models import Recipes, Ingredient, RecipesIngredient
 
 
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
-            _, b64_data = data.split(';base64,')
-            ext = _.split('/')[-1]
+            format, imgstr = data.split(';base64,')
+            ext = format.split('/')[-1]
             filename = f"avatar_{uuid.uuid4().hex[:8]}.{ext}"
             data = ContentFile(b64decode(imgstr), name=filename)
         return super().to_internal_value(data)
-
 
 class IngredientSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='name')
