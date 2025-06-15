@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator,MaxValueValidator
 from django.db import models
 from django.urls import reverse
 
 User = get_user_model()
-
+MIN_AMOUNT = 1
+MAX_AMOUNT = 32_000
 
 class IngredientModel(models.Model):
     title = models.CharField(max_length=256, verbose_name='Название')
@@ -26,8 +27,11 @@ class IngredientModel(models.Model):
 class Recipe(models.Model):
     title = models.CharField(max_length=256, verbose_name='Название')
     description = models.TextField(verbose_name='Описание')
-    prep_time = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1)],
+    cooking_time = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(MIN_AMOUNT),
+            MaxValueValidator(MAX_AMOUNT)
+        ],
         verbose_name='Время приготовления'
     )
     picture = models.ImageField(
@@ -63,6 +67,7 @@ class Recipe(models.Model):
     def get_absolute_url(self):
         return reverse('recipe-detail', kwargs={'pk': self.pk})
 
+
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
@@ -75,12 +80,16 @@ class RecipeIngredient(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Ингредиент'
     )
-    quantity = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)],
+    quantity = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(MIN_AMOUNT),
+            MaxValueValidator(MAX_AMOUNT)
+        ],
         verbose_name='Количество'
     )
 
     class Meta:
+        ordering = ['recipe', 'ingredient']
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
@@ -109,14 +118,15 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Корзина покупок'
-        verbose_name_plural = 'Корзины покупок'
+        ordering = ['owner', 'recipe']
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'owner'],
                 name='unique_recipe_in_cart'
             )
         ]
+        verbose_name = 'Корзина покупок'
+        verbose_name_plural = 'Корзины покупок'
 
     def __str__(self):
         return f'{self.recipe} в корзине у {self.owner}'
@@ -137,14 +147,15 @@ class FavoriteRecipe(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Избранный рецепт'
-        verbose_name_plural = 'Избранные рецепты'
+        ordering = ['owner', 'recipe']
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'owner'],
                 name='unique_favorite_recipe'
             )
         ]
+        verbose_name = 'Избранный рецепт'
+        verbose_name_plural = 'Избранные рецепты'
 
     def __str__(self):
         return f'{self.recipe} в избранном у {self.owner}'

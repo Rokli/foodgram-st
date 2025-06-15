@@ -84,9 +84,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
             
         elif request.method == 'DELETE':
-            deleted_count, _ = ShoppingCart.objects.filter(
-                owner=current_user, recipe=recipe
-            ).delete()
+            deleted_count, _ = current_user.shopping_items.filter(recipe=recipe).delete()
+
             if deleted_count == 0:
                 return Response(
                     {'detail': 'Рецепт не найден в корзине!'},
@@ -170,9 +169,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
             
         elif request.method == 'DELETE':
-            deleted_count, _ = FavoriteRecipe.objects.filter(
-                owner=current_user, recipe=recipe
-            ).delete()
+            deleted_count, _ = current_user.favorite_recipes.filter(recipe=recipe).delete()
             if deleted_count == 0:
                 return Response({
                     'detail': 'Рецепт не найден в избранном!'
@@ -233,9 +230,7 @@ class FollowManagementViewSet(viewsets.GenericViewSet):
             serializer = self.get_serializer(target_user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
             
-        deleted_count, _ = Follow.objects.filter(
-            follower=request.user, following=target_user
-        ).delete()
+        deleted_count, _ = request.user.following.filter(following=target_user).delete()
         if deleted_count == 0:
             return Response(
                 {'detail': 'Вы не подписаны на этого пользователя!'}, 

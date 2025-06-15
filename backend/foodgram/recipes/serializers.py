@@ -8,6 +8,10 @@ from rest_framework import serializers
 from .models import Recipe, IngredientModel, RecipeIngredient
 from users.serializers import UsersSerializer
 
+
+MIN_AMOUNT = 1
+MAX_AMOUNT = 32000
+
 class ImageBase64Field(serializers.ImageField):
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
@@ -36,14 +40,23 @@ class RecipeIngredientCreateSerializer(serializers.Serializer):
         queryset=IngredientModel.objects.all(),
         source='ingredient'
     )
-    amount = serializers.IntegerField(min_value=1)
+    amount = serializers.IntegerField(
+        min_value=MIN_AMOUNT,
+        max_value=MAX_AMOUNT,
+        error_messages={
+            'min_value': f'Количество должно быть не менее {MIN_AMOUNT}',
+            'max_value': f'Количество должно быть не более {MAX_AMOUNT}'
+        }
+    )
 
 class RecipeSerializer(serializers.ModelSerializer):
-    prep_time = serializers.IntegerField(
-        source='prep_time',
-        min_value=1,
+    cooking_time = serializers.IntegerField(
+        source='cooking_time',
+        min_value=MIN_AMOUNT,
+        max_value=MAX_AMOUNT,
         error_messages={
-            'min_value': 'Время приготовления должно быть больше нуля!'
+            'min_value': f'Время приготовления должно быть не меньше {MIN_AMOUNT} минут!',
+            'max_value': f'Время приготовления не может превышать {MAX_AMOUNT} минут!'
         }
     )
     creator = UsersSerializer(source='creator', read_only=True)
@@ -56,7 +69,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = (
             'id', 'creator', 'components', 'is_favorited',
-            'is_in_shopping_cart', 'name', 'picture', 'text', 'prep_time'
+            'is_in_shopping_cart', 'name', 'picture', 'text', 'cooking_time'
         )
         read_only_fields = ('is_favorited', 'is_in_shopping_cart', 'creator')
 
@@ -64,7 +77,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['name'] = instance.title
         representation['text'] = instance.description
-        representation['cooking_time'] = instance.prep_time
+        representation['cooking_time'] = instance.cooking_time
         representation['author'] = representation.pop('creator')
         representation['image'] = representation.pop('picture')
         representation['ingredients'] = RecipeIngredientSerializer(
@@ -81,13 +94,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         if 'ingredients' in data:
             internal_data['ingredients'] = data['ingredients']
         return internal_data
-
-    def validate_prep_time(self, value):
-        if value <= 0:
-            raise serializers.ValidationError(
-                'Время приготовления должно быть положительным числом!'
-            )
-        return value
 
     def validate_ingredients(self, value):
         if not isinstance(value, list):
@@ -135,7 +141,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         recipe_data = {
             'title': validated_data.get('name', ''),
             'description': validated_data.get('text', ''),
-            'prep_time': validated_data.get('cooking_time', validated_data.get('prep_time')),
+            'cooking_time': validated_data.get('cooking_time', validated_data.get('cooking_time')),
             'picture': validated_data.get('image', validated_data.get('picture')),
             'creator': validated_data.get('author', validated_data.get('creator'))
         }
@@ -146,7 +152,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients', None)
-        if not ingredients_data or len(ingredients_data) == 0:
+        if not ingredients_data:
             raise serializers.ValidationError(
                 'Поле ингредиентов обязательно для заполнения!'
             )
@@ -156,7 +162,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         if 'text' in validated_data:
             instance.description = validated_data['text']
         if 'cooking_time' in validated_data:
-            instance.prep_time = validated_data['cooking_time']
+            instance.cooking_time = validated_data['cooking_time']
         if 'image' in validated_data:
             instance.picture = validated_data['image']
             
@@ -179,20 +185,19 @@ class RecipeSerializer(serializers.ModelSerializer):
         ingredient_relations = []
         for ingredient_data in ingredients_data:
             ingredient_id = ingredient_data['id']
-            if ingredient_id in ingredients:
+            try:
                 amount = int(ingredient_data['amount'])
-                if amount <= 0:
-                    raise serializers.ValidationError(
-                        'Количество ингредиента должно быть больше нуля!'
-                    )
-
-                ingredient_relations.append(
-                    RecipeIngredient(
-                        recipe=recipe,
-                        ingredient=ingredients[ingredient_id],
-                        quantity=amount
-                    )
+            except (ValueError, TypeError):
+                raise serializers.ValidationError(
+                    f'Количество ингредиента (ID: {ingredient_id}) должно быть целым числом!'
                 )
+            ingredient_relations.append(
+                RecipeIngredient(
+                    recipe=recipe,
+                    ingredient=ingredients[ingredient_id],
+                    quantity=amount
+                )
+            )
         RecipeIngredient.objects.bulk_create(ingredient_relations)
 
     def _update_ingredients_relations(self, recipe, ingredients_data):
@@ -227,7 +232,7 @@ class CompactRecipeSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['name'] = instance.title
-        representation['cooking_time'] = instance.prep_time
+        representation['cooking_time'] = instance.cooking_time
         return representation
 
 

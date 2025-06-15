@@ -5,7 +5,7 @@ from django.core.files.base import ContentFile
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 
-from .models import User, Follow
+from .models import User
 import re
 
 class ImageBase64Field(serializers.ImageField):
@@ -35,12 +35,9 @@ class UsersSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
-        if (not request or not request.user.is_authenticated 
-                or obj == request.user):
+        if (not request or not request.user.is_authenticated or obj == request.user):
             return False
-        return Follow.objects.filter(
-            follower=request.user, following=obj
-        ).exists()
+        return obj.subscribers.filter(follower=request.user).exists()
 
 
 class UsersCreateSerializer(UserCreateSerializer):
@@ -61,5 +58,5 @@ class UsersCreateSerializer(UserCreateSerializer):
         return data
 
     def create(self, validated_data):
-        validated_data.pop('re_password', None)  # Удаляем re_password перед созданием
+        validated_data.pop('re_password', None)  
         return User.objects.create_user(**validated_data)

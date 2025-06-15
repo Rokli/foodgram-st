@@ -12,9 +12,9 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('title', 'creator', 'prep_time', 'publication_date')
+    list_display = ('title', 'creator', 'cooking_time', 'publication_date')
     search_fields = ('title', 'creator__username')
-    list_filter = ('publication_date', 'prep_time')
+    list_filter = ('publication_date', 'cooking_time')
     readonly_fields = ('publication_date',)
 
 
