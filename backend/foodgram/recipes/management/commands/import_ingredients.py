@@ -7,7 +7,7 @@ class Command(BaseCommand):
     help = 'Импортирует ингредиенты из файла ingredients.json'
 
     def handle(self, *args, **options):
-        file_path = '/data/ingredients.json'
+        file_path = '../data/ingredients.json'
 
         try:
             with open(file_path, 'r', encoding='utf-8') as file:
@@ -16,7 +16,7 @@ class Command(BaseCommand):
                 ingredients = [
                     IngredientModel(
                         title=item['name'],
-                        unit=item['measurement_unit']
+                        measurement_unit=item.get('measurement_unit', 'г.')
                     )
                     for item in data
                 ]

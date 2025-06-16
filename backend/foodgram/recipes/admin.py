@@ -5,9 +5,9 @@ from .models import Recipe, IngredientModel, RecipeIngredient
 
 @admin.register(IngredientModel)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('title', 'unit')
+    list_display = ('title', 'measurement_unit')
     search_fields = ('title',)
-    list_filter = ('unit',)
+    list_filter = ('measurement_unit',)
 
 
 @admin.register(Recipe)

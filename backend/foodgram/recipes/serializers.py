@@ -31,7 +31,7 @@ class IngredientSerializer(serializers.ModelSerializer):
         
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['measurement_unit'] = instance.unit
+        representation['measurement_unit'] = instance.measurement_unit
         return representation
 
 
@@ -208,7 +208,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.title')
-    measurement_unit = serializers.CharField(source='unit')
+    measurement_unit = serializers.CharField(source='measurement_unit')
     amount = serializers.IntegerField(
         source='quantity',
         min_value=1,

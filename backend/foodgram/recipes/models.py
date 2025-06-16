@@ -9,7 +9,7 @@ MAX_AMOUNT = 32_000
 
 class IngredientModel(models.Model):
     title = models.CharField(max_length=256, verbose_name='Название')
-    unit = models.CharField(
+    measurement_unit = models.CharField(
         default='г.',
         max_length=30,
         verbose_name='Единица измерения'
@@ -21,7 +21,7 @@ class IngredientModel(models.Model):
         verbose_name_plural = 'Ингредиенты'
 
     def __str__(self):
-        return f'{self.title} ({self.unit})'
+        return f'{self.title} ({self.measurement_unit})'
 
 
 class Recipe(models.Model):
