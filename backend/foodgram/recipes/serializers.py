@@ -208,7 +208,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.title')
-    measurement_unit = serializers.CharField(source='ingredient.unit')
+    measurement_unit = serializers.CharField(source='unit')
     amount = serializers.IntegerField(
         source='quantity',
         min_value=1,
