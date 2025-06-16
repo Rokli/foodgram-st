@@ -42,6 +42,11 @@ DB_PORT=5432
 ### 3. Запуск проекта 
  
 docker-compose up --build         # Сборка и запуск контейнеров 
+
+### 4. Загрузка данных в БД
+После запуска контейнеров выполните команду для загрузки тестовых данных (ингредиенты):
+
+docker exec -it foodgram-backend python manage.py import_ingredients
  
 ### Конец! 
 Foodgram готов к работе! 
